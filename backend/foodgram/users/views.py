@@ -1,27 +1,25 @@
-from rest_framework import viewsets, status
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
+from djoser.views import UserViewSet
 
 from .models import Subscribe
 from .paginators import UserPaginator
 from .serializers import SubscribeSerializer
-from api.serializers import UserSerializer
 
 User = get_user_model()
 
 
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
+class UserViewSet(UserViewSet):
     pagination_class = UserPaginator
 
     @action(detail=True, methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
-    def subscribe(self, request, pk=None):
-        author = get_object_or_404(User, pk=pk)
+    def subscribe(self, request, id=None):
+        author = get_object_or_404(User, id=id)
 
         if request.user == author:
             return Response({'errors': 'Пописываться на себя запрещено!'},

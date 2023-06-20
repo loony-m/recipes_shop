@@ -22,9 +22,10 @@ class IngredientsAmountSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'measurement_unit', 'amount')
 
     def get_amount(self, obj):
-        ingredient = IngredientsAmount.objects.filter(
-            ingredient=obj.pk
-        ).first()
+        ingredient = IngredientsAmount.objects.get(
+            ingredient=obj.pk,
+            recipes=obj.rn_recipes.first().id
+        )
         return ingredient.amount
 
 
@@ -37,10 +38,17 @@ class RecipesSerializator(serializers.ModelSerializer):
     is_in_shopping_cart = serializers.SerializerMethodField()
 
     def get_is_favorited(self, obj):
-        return Favorite.objects.filter(recipes=obj.pk).exists()
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return Favorite.objects.filter(recipes=obj.pk, author=user).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        return ShoppingCart.objects.filter(recipes=obj.pk).exists()
+        user = self.context.get('request').user
+        if user.is_anonymous:
+            return False
+        return ShoppingCart.objects.filter(recipes=obj.pk,
+                                           author=user).exists()
 
     class Meta:
         model = Recipes
@@ -77,7 +85,7 @@ class RecipesSerializator(serializers.ModelSerializer):
 
         ingredients = self.initial_data.get('ingredients')
         if ingredients:
-            IngredientsAmount.objects.filter(recipes=instance).all().delete()
+            IngredientsAmount.objects.filter(recipes=instance).delete()
             ingredients_id = self.add_ingredients(ingredients, instance)
             instance.ingredients.set(ingredients_id)
 
@@ -91,7 +99,9 @@ class RecipesSerializator(serializers.ModelSerializer):
             ingredient_item = Ingredients.objects.filter(
                 pk=ingredient.get('id')
             )
-
+            # todo: ингридиенты все нужные. Здесь мы проверям каждый,
+            # который передает пользователь в api
+            # если выносить проверку в другое место получится то же самое
             if ingredient_item.exists():
                 IngredientsAmount.objects.create(
                     recipes=recipe,
@@ -101,6 +111,27 @@ class RecipesSerializator(serializers.ModelSerializer):
                 ingredients_id.append(ingredient.get('id'))
 
         return ingredients_id
+
+        # todo: bulk_create не возвращает id обьектов,
+        # а мне они нужны дальше по коду
+
+        # ingredient_list = []
+        # ingredients_id = []
+
+        # for ingredient in ingredients:
+        #     ingredient_list.append(
+        #         IngredientsAmount(
+        #             recipes=recipe,
+        #             ingredient=Ingredients.objects.filter(pk=ingredient.get('id')).first(),
+        #             amount=ingredient.get('amount')
+        #         )
+        #     )
+        # objects = IngredientsAmount.objects.bulk_create(ingredient_list)
+
+        # for objects in objects:
+        #     ingredients_id.append(objects.id)
+
+        # return ingredients_id
 
 
 class RecipeGeneralSerializer(serializers.ModelSerializer):

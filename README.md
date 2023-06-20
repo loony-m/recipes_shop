@@ -1,5 +1,17 @@
 # Foodgram, продуктовый помощник
 
+## Доступ для ревью
+158.160.72.244
+Суперпользователь:
+test
+test@test.ru
+1q2w3e123
+
+Обычный юзер
+maxim
+test2@test.ru
+1q2w3e123
+
 ## Описание
 На проекте можно 
 - создавать свои рецепты
@@ -9,8 +21,6 @@
 - скачивать список продуктов в .txt формате
 
 Стек: Django Rest Framework, djoser аутентификация по токену, redoc, pagination, permissions, throttling, django_filters, docker-compose, nginx, postgreql
-
-
 
 ## Как запустить проект:
 1. Kлонируем репозиторий:
