@@ -56,6 +56,20 @@ class RecipesSerializator(serializers.ModelSerializer):
                   'name', 'image', 'text', 'cooking_time',
                   'is_favorited', 'is_in_shopping_cart')
 
+    def validate(self, data):
+        cooking_time = self.initial_data.get('cooking_time')
+        if not type(cooking_time) == int:
+            raise serializers.ValidationError({
+                'cooking_time': 'значение должно быть числом'})
+
+        ingredients = self.initial_data.get('ingredients')
+        for ingredient in ingredients:
+            if not type(ingredient['amount']) == int:
+                raise serializers.ValidationError({
+                    'amount': 'значение должно быть числом'})
+
+        return data
+
     def create(self, validated_data):
         image = validated_data.pop('image')
         ingredients = self.initial_data.get('ingredients')

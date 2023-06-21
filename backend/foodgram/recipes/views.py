@@ -50,25 +50,21 @@ class RecipesViewSet(viewsets.ModelViewSet):
 
         ingredients_list = {}
 
-        carts = ShoppingCart.objects.filter(author=request.user).all()
+        ingredients = IngredientsAmount.objects.filter(
+            recipes__rn_cart__author=request.user).values_list(
+            'amount', 'ingredient__name', 'ingredient__measurement_unit')
 
-        for cart in carts:
-            for ingredient in cart.recipes.ingredients.all():
-                id = ingredient.id
+        for ingredient in ingredients:
+            name = ingredient[1]
 
-                ingredient_amount = IngredientsAmount.objects.get(
-                    ingredient=id,
-                    recipes=cart.recipes.id,
-                ).amount
-
-                if id in ingredients_list:
-                    ingredients_list[id]['amount'] += ingredient_amount
-                else:
-                    ingredients_list[id] = {
-                        'amount': ingredient_amount,
-                        'name': ingredient.name,
-                        'measurement_unit': ingredient.measurement_unit,
-                    }
+            if name in ingredients_list:
+                ingredients_list[name]['amount'] += ingredient[0]
+            else:
+                ingredients_list[name] = {
+                    'amount': ingredient[0],
+                    'name': ingredient[1],
+                    'measurement_unit': ingredient[2],
+                }
 
         file_content = 'Список покупок: \n'
         for ingredient in ingredients_list.values():
