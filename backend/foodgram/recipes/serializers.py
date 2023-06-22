@@ -58,13 +58,18 @@ class RecipesSerializator(serializers.ModelSerializer):
 
     def validate(self, data):
         cooking_time = self.initial_data.get('cooking_time')
-        if not type(cooking_time) == int:
+
+        try:
+            int(cooking_time)
+        except Exception:
             raise serializers.ValidationError({
                 'cooking_time': 'значение должно быть числом'})
 
         ingredients = self.initial_data.get('ingredients')
         for ingredient in ingredients:
-            if not type(ingredient['amount']) == int:
+            try:
+                int(ingredient['amount'])
+            except Exception:
                 raise serializers.ValidationError({
                     'amount': 'значение должно быть числом'})
 
